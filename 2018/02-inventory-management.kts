@@ -6,7 +6,7 @@ import java.io.File
  * https://adventofcode.com/2018/day/2
  */
 
-val ids = File("02-input.txt").readLines()
+val ids = File("input02.txt").readLines()
 
 /** Returns frequency count of each character in a string */
 fun hist(s: String) = s.groupingBy { it }.eachCount()
