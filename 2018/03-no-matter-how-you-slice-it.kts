@@ -22,10 +22,7 @@ fun parseClaim(s: String) =
 
 val claims = lines.map(::parseClaim)
 
-val fabric = claims.flatMap(Claim::squares)
-    .foldRight(mutableMapOf<String, Int>()) { square, fabric ->
-        fabric.apply { compute(square) { _, v -> v?.inc() ?: 1 } }
-    }
+val fabric = claims.flatMap(Claim::squares).groupingBy { it }.eachCount()
 
 val conflictingSquares = fabric.values.filter { it > 1 }.size
 
