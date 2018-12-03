@@ -6,7 +6,7 @@ import java.io.File
  * https://adventofcode.com/2018/day/1
  */
 
-val frequencyDeltas = File("01.txt").readLines().map { it.toInt() }
+val frequencyDeltas = File("01-input.txt").readLines().map { it.toInt() }
 
 println("Cumulative frequency: ${frequencyDeltas.sum()}")
 
