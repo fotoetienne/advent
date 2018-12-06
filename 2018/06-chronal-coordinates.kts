@@ -3,6 +3,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_RGB
 import java.io.File
+import java.lang.Math.pow
 import javax.imageio.ImageIO
 import kotlin.math.abs
 
@@ -85,23 +86,26 @@ for (x in (0 until 400))
 
 println("Safe Points: $safePoints")
 
-// Part 1 Visualisation
+// Visualisation for Parts 1 and 2
 
 val maxSize = coordinates.map { it.closestPoints }.max()!!
 val minSize = coordinates.map { it.closestPoints }.min()!!
 
-fun regionColor(coordinate: Coordinate?): Int {
-    if (coordinate == null) return 0
+fun regionColor(x: Int, y: Int): Int {
+    val score = coordinates.map { it.distance(x, y) }.sum()
+    val saturation = if (score < 10000) pow(score / 10000.0, 2.0) else 0.8 * pow(10000.0 / score, 4.0)
+    val coordinate = points[x][y] ?: return 0
     val size = coordinate.closestPoints.toFloat()
     val hue: Float = ((size - minSize) / maxSize)
-    return if (coordinate.edge) Color.HSBtoRGB(hue, 0.5F, 0.5F)
-    else Color.HSBtoRGB(hue, 1.0F, 0.7F)
+
+    return if (coordinate.edge) Color.HSBtoRGB(hue, saturation.toFloat(), 0.5F)
+    else Color.HSBtoRGB(hue, saturation.toFloat(), 1.0F)
 }
 
 val regions = BufferedImage(400, 400, TYPE_INT_RGB)
 for (x in (0 until 400)) {
     for (y in (0 until 400)) {
-        regions.setRGB(x, y, regionColor(points[x][y]))
+        regions.setRGB(x, y, regionColor(x, y))
     }
 }
 
@@ -111,4 +115,4 @@ for (coordinate in coordinates) when {
     else -> regions.setRGB(coordinate.x, coordinate.y, Color.WHITE.rgb)
 }
 
-ImageIO.write(regions, "png", File("06-largest-region.png"))
+ImageIO.write(regions, "png", File("06-visualization.png"))
