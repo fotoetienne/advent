@@ -1,5 +1,4 @@
 #!/usr/bin/env kscript
-import _06_universal_orbit_map.OrbitMap
 import java.io.File
 
 /**
