@@ -1,14 +1,14 @@
 #!/usr/bin/env kscript
-import _07.IntCode
-import java.io.File
 import java.lang.Integer.max
+
+//INCLUDE fetchInput.kt
 
 /**
  * Advent of Code 2019 - Day 7
  * https://adventofcode.com/2019/day/7
  */
 
-fun amplifierControlSoftware() = File("input07.txt").readText().trim().toIntCode()
+fun amplifierControlSoftware() = getInput(7).readText().trim().toIntCode()
 
 inner class Program(val intCode: Array<Int>, val phase: Int, var input: Int = 0) {
     constructor(intCodeString: String, phase: Int) : this(intCodeString.toIntCode(), phase)
@@ -178,7 +178,7 @@ check(testSoftware1.maxThrust() == 43210)
 
 val testSoftware2: IntCode =
     "3,23,3,24,1002,24,10,24,1002,23,-1,23,101,5,23,23,1,24,23,23,4,23,99,0,0".toIntCode()
-check(testSoftware2.trySequence(listOf(0,1,2,3,4)) == 54321)
+check(testSoftware2.trySequence(listOf(0, 1, 2, 3, 4)) == 54321)
 check(testSoftware2.maxThrust() == 54321)
 
 println("part 1: ${amplifierControlSoftware().maxThrust()}")
@@ -223,7 +223,7 @@ val phasePermutations59 = permute((5..9).toList())
 val testSoftware21: IntCode =
     "3,26,1001,26,-4,26,3,27,1002,27,2,27,1,27,26,27,4,27,1001,28,-1,28,1005,28,6,99,0,0,5".toIntCode()
 
-check(testSoftware21.feedback(listOf(9,8,7,6,5)) == 139629729)
+check(testSoftware21.feedback(listOf(9, 8, 7, 6, 5)) == 139629729)
 check(testSoftware21.maxThrustWFeedback() == 139629729)
 
 println("part 2: ${amplifierControlSoftware().maxThrustWFeedback()}")
