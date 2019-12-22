@@ -1,16 +1,24 @@
 #!/usr/bin/env kscript
 @file:Include("fetchInput.kt")
 @file:DependsOn("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
+@file:DependsOn("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:0.3")
 @file:KotlinOpts("-J-Xmx5g")
 
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.PersistentSet
+import kotlinx.collections.immutable.persistentHashSetOf
+import kotlinx.collections.immutable.persistentListOf
+import java.lang.Integer.compare
+import java.util.*
 import kotlin.math.min
+import kotlin.system.measureTimeMillis
 
 /**
  * Advent of Code 2019 - Day 18
  * https://adventofcode.com/2019/day/18
  */
 
-val input get() = getInput(18).read()
+val input get() = getInput(18).readText()
 
 typealias TunnelMap = Array<CharArray>
 typealias Bag = Set<Char>
@@ -18,42 +26,15 @@ typealias Bag = Set<Char>
 fun String.parseTunnelMap() = split("\n")
     .map { it.toCharArray() }.toTypedArray()
 
-class Tunneler(val puzzleInput: String) {
-    val tunnelMap = puzzleInput.split("\n")
-        .map { it.split("").toMutableList() }.toMutableList()
-    var x = 0
-    var y = 0
-    val xMax = tunnelMap[0].size
-    val yMax = tunnelMap.size
-    val keys = mutableMapOf<String, Boolean>()
 
-    init {
-        setInitialPosition()
-        printScreen()
-    }
-
-    fun printScreen() {
-        for (row in tunnelMap) {
-            for (c in row) {
-                print(c)
-            }
-            println()
+fun TunnelMap.printScreen() {
+    for (row in this) {
+        for (c in row) {
+            print(c)
         }
-    }
-
-    fun setInitialPosition() {
-        for (i in tunnelMap.indices) {
-            for (j in tunnelMap[i].indices) {
-                if (tunnelMap[i][j] == "@") {
-                    y = i
-                    x = j
-                }
-            }
-        }
+        println()
     }
 }
-
-//val tunneler = Tunneler(input)
 
 data class Point(val x: Int, val y: Int)
 
@@ -62,8 +43,23 @@ val TunnelMap.allKeys get() = flatMap { row -> row.filter { it.isKey() } }.toSet
 data class TunnelState(val tunnelMap: TunnelMap, val inventory: Bag = emptySet()) {
     constructor(tunnelMap: String) : this(tunnelMap.parseTunnelMap())
 
-    val allKeys by lazy { tunnelMap.allKeys }
-    val startingPosition by lazy { tunnelMap.find('@')!! }
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as TunnelState
+
+        if (!tunnelMap.contentDeepEquals(other.tunnelMap)) return false
+        if (inventory != other.inventory) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = tunnelMap.contentDeepHashCode()
+        result = 31 * result + inventory.hashCode()
+        return result
+    }
 }
 
 operator fun TunnelMap.get(point: Point) = try {
@@ -75,39 +71,8 @@ operator fun TunnelMap.get(point: Point) = try {
 val Point.neighbors: List<Point>
     get() = listOf(Point(x - 1, y), Point(x + 1, y), Point(x, y - 1), Point(x, y + 1))
 
-fun Char.isWall() = this == '#'
-fun Char.isOpenPassage() = this == '.' || this == '@'
 fun Char.isDoor() = this in 'A'..'Z'
 fun Char.isKey() = this in 'a'..'z'
-fun Bag.containsKeyFor(door: Char) = contains(door.toLowerCase())
-fun Char.isOpenDoor(inventory: Bag) = isDoor() && inventory.containsKeyFor(this)
-fun Char.isOpen(inventory: Bag) = isOpenPassage() || isOpenDoor(inventory) || isKey()
-fun Char.isClosed(inventory: Bag) = !isOpen(inventory)
-
-typealias KeyMap = Map<Char, Int>
-
-fun KeyMap.merge(other: KeyMap) = (keys + other.keys).map { k ->
-    k to min(getOrDefault(k, Int.MAX_VALUE), other.getOrDefault(k, Int.MAX_VALUE))
-}.toMap()
-
-fun TunnelState.accessibleKeys(position: Point, path: Set<Point> = emptySet()): Pair<Set<Point>, Map<Char, Int>> {
-    var newPath = path + position
-    val thisSpot = tunnelMap[position]
-    return if (thisSpot.isKey() && !inventory.contains(thisSpot)) {
-        Pair(newPath, mapOf(thisSpot to 0))
-    } else if (thisSpot.isOpen(inventory)) {
-        var keys = mapOf<Char, Int>()
-        for (neighbor in position.neighbors) {
-            if (newPath.contains(neighbor)) continue
-            val (neighborPath, neighborKeys) = accessibleKeys(neighbor, newPath)
-            newPath += neighborPath
-            keys = keys.merge(neighborKeys)
-        }
-        Pair(newPath, keys.mapValues { (k, v) -> v + 1 })
-    } else {
-        Pair(newPath, emptyMap())
-    }
-}
 
 fun TunnelMap.find(c: Char): Point? {
     for (i in indices)
@@ -117,25 +82,59 @@ fun TunnelMap.find(c: Char): Point? {
     return null
 }
 
-val initialState = TunnelState(input.parseTunnelMap())
+data class KeyPath(val cost: Int, val doors: Set<Char>)
 
-//val TunnelState.allKeys get() = tunnelMap.flatMap { row -> row.filter { it.isKey() } }.toSet()
-//
-//val ks = initialState.accessibleKeys(initialState.startingPosition)
+fun TunnelMap.keyPaths(start: Char) = keyPaths(find(start)!!)
 
-fun TunnelState.getKeys(position: Point = startingPosition): Int? {
-//    println("$position ${tunnelMap[position]}")
-    val currentState = if (tunnelMap[position].isKey()) copy(inventory = inventory + tunnelMap[position]) else this
-    if (currentState.inventory == allKeys) return 0
-    val options = currentState.accessibleKeys(position).second
-//    println(options)
-    return options.entries.stream().parallel()
-        .map { (k, dist) ->
-            //        println("$k, neighbor of ${tunnelMap[position]}")
-            currentState.getKeys(tunnelMap.find(k)!!)?.plus(dist)
-        }.filter { it != null }
-        .reduce { t: Int?, u: Int? -> min(t!!, u!!) }
-        .orElse(null)
+fun TunnelMap.keyPaths(start: Point): Map<Char, KeyPath> {
+    val paths: MutableMap<Char, KeyPath> = mutableMapOf()
+    val queue: Deque<Triple<Point, Int, String>> = ArrayDeque()
+    queue.add(Triple(start, 0, ""))
+    val done: MutableSet<Point> = mutableSetOf(start)
+    while (queue.isNotEmpty()) {
+        val (position, cost, doors) = queue.poll()
+        val newCost = cost + 1
+        for (neighbor in position.neighbors) {
+            val ch = get(neighbor)
+            if (ch == '#') continue
+            if (!done.contains(neighbor)) {
+                done.add(neighbor)
+                if (ch.isKey()) {
+                    paths[ch] = KeyPath(newCost, doors.toSet())
+                }
+                queue.add(Triple(neighbor, newCost, if (ch.isDoor()) doors + ch.toLowerCase() else doors))
+            }
+        }
+    }
+    return paths
+}
+
+fun TunnelMap.calculatePaths(): Map<Char, Map<Char, KeyPath>> = (allKeys + '@').map { it to keyPaths(it) }.toMap()
+
+data class KeyState(val cost: Int, val c: Char, val ks: Set<Char>)
+
+fun TunnelMap.part1(): Int {
+    val nKeys = allKeys.size
+    val paths = calculatePaths()
+    val queue = PriorityQueue<KeyState>(5000, kotlin.Comparator { a, b -> compare(a.cost, b.cost) }) // PriorityQ
+    queue.add(KeyState(0, '@', persistentHashSetOf()))
+    val done = mutableSetOf<Pair<Char, Set<Char>>>()
+    var minCost = 0
+    while (queue.isNotEmpty()) {
+        val (cost, currentKey, inventory) = queue.remove()
+        minCost = cost
+        val keyPair = Pair(currentKey, inventory)
+        if (!done.contains(keyPair)) {
+            done.add(keyPair)
+            if (inventory.size == nKeys) break
+            for ((nextKey, path) in paths.getValue(currentKey)) {
+                if (!inventory.contains(nextKey) && (path.doors - inventory).isEmpty()) {
+                    queue.add(KeyState(cost + path.cost, nextKey, inventory + nextKey))
+                }
+            }
+        }
+    }
+    return minCost
 }
 
 val testMap1 = """#########
@@ -171,20 +170,79 @@ val testMap5 = """########################
 ###g#h#i################
 ########################"""
 
-val test1 = TunnelState(testMap1)
-check(test1.getKeys() == 8)
+check(testMap1.parseTunnelMap().part1() == 8)
 
-println("test 2:")
-println(TunnelState(testMap2).getKeys())
+check(testMap2.parseTunnelMap().part1() == 86)
 
-println("test 3:")
-println(TunnelState(testMap3).getKeys())
+check(testMap3.parseTunnelMap().part1() == 132)
 
-println("test 4:")
-println(TunnelState(testMap4).getKeys())
+print("test 4: ")
+measureTimeMillis {
+    check(testMap4.parseTunnelMap().part1() == 136)
+}.let { println("($it ms)") }
 
-println("test 5:")
-println(TunnelState(testMap5).getKeys())
+print("test 5: ")
+measureTimeMillis {
+    check(testMap5.parseTunnelMap().part1() == 81)
+}.let { println("($it ms)") }
 
-println("part 1:")
-println(initialState.getKeys())
+print("part 1: ")
+measureTimeMillis {
+    print(input.parseTunnelMap().part1())
+}.let { println(" ($it ms)") }
+
+/** Part 2 **/
+
+val robots = persistentListOf('1', '2', '3', '4')
+
+fun TunnelMap.splitMap(): TunnelMap {
+    val (x, y) = find('@')!!
+    this[y][x] = '#'
+    this[y - 1][x] = '#'
+    this[y + 1][x] = '#'
+    this[y][x - 1] = '#'
+    this[y][x + 1] = '#'
+    this[y - 1][x - 1] = '1'
+    this[y + 1][x + 1] = '2'
+    this[y - 1][x + 1] = '3'
+    this[y + 1][x - 1] = '4'
+    return this
+}
+
+fun TunnelMap.calculatePaths4(): Map<Char, Map<Char, KeyPath>> = (allKeys + robots).map { it to keyPaths(it) }.toMap()
+
+data class MultiKeyState(val cost: Int, val robots: PersistentList<Char>, val ks: PersistentSet<Char>)
+
+fun TunnelMap.part2(): Int {
+    splitMap()
+    val nKeys = allKeys.size
+    val paths = calculatePaths4()
+    val queue = PriorityQueue<MultiKeyState>(5000, kotlin.Comparator { a, b -> compare(a.cost, b.cost) }) // PriorityQ
+    queue.add(MultiKeyState(0, robots, persistentHashSetOf()))
+    val done = mutableSetOf<Pair<List<Char>, Set<Char>>>()
+    var minCost = 0
+    while (queue.isNotEmpty()) {
+        val (cost, currentKeys, inventory) = queue.remove()
+        minCost = cost
+        val keyPair = Pair(currentKeys, inventory)
+        if (!done.contains(keyPair)) {
+            done.add(keyPair)
+            if (inventory.size == nKeys) break
+            for (robot in currentKeys.indices) {
+                for ((nextKey, kp) in paths.getValue(currentKeys[robot])) {
+                    if (!inventory.contains(nextKey) && (kp.doors - inventory).isEmpty()) {
+                        queue.add(MultiKeyState(cost + kp.cost, currentKeys.set(robot, nextKey), inventory.add(nextKey)))
+                    }
+                }
+            }
+        }
+    }
+    return minCost
+}
+
+//input.parseTunnelMap().split().printScreen()
+print("part 2: ")
+measureTimeMillis {
+    print(input.parseTunnelMap().part2())
+}.let { println(" ($it ms)") }
+
