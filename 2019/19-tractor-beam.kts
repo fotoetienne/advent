@@ -18,7 +18,7 @@ data class Point(val x: Int, val y: Int)
 fun getTractorStatus(point: Point): Int {
     val (x,y) = point
     val seq = sequenceOf(x,y).iterator()
-    val computer = Computer(program) { seq.next() }
+    val computer = Computer(program) { seq.next().toLong() }
     computer.runOnce()
     return computer.readOutput()?.toInt()!!
 }

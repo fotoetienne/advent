@@ -11,11 +11,11 @@ import kotlinx.coroutines.channels.Channel
  * https://adventofcode.com/2019/
  */
 
-class Computer(intCode: IntCode, val getInput: () -> Int = { 0 }) {
+class Computer(intCode: IntCode, val getInput: () -> Long = { 0 }) {
 
-    val memory: IntCode = intCode + LongArray(10000)
+    val memory: IntCode = intCode + LongArray(intCode.size)
     var pointer = 0L
-    val outputChannel = Channel<Long>(10000)
+    val outputChannel = Channel<Long>(1024)
     var steps = 0
     var relativeBase = 0L
 
@@ -61,7 +61,7 @@ class Computer(intCode: IntCode, val getInput: () -> Int = { 0 }) {
         else -> throw RuntimeException("Invalid parameter mode $mode")
     }
 
-    private fun doOp() = when (currentOp.op) {
+    fun doOp() = when (currentOp.op) {
         1L -> biFunc(Long::plus)
         2L -> biFunc(Long::times)
         3L -> uFunc { write(getInput().toLong(), pointer + 1, currentOp.p1Mode) }
@@ -75,7 +75,7 @@ class Computer(intCode: IntCode, val getInput: () -> Int = { 0 }) {
         else -> throw RuntimeException("Invalid Opcode ${currentOp.op} at position $pointer")
     }
 
-    private val currentOp
+    val currentOp
         get() = parseOp(memory[pointer])
 
     fun runOnce(): Boolean {

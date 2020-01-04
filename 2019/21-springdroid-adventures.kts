@@ -13,7 +13,7 @@ val intCode get() = getInput(21).read().toIntCode()
 
 inner class SpringDroid(intCode: IntCode, droidScript: String) {
     private val droidScriptIterator = droidScript.iterator()
-    val computer = Computer(intCode) { droidScriptIterator.nextChar().toInt() }
+    val computer = Computer(intCode) { droidScriptIterator.nextChar().toLong() }
 
     fun run() {
         computer.run()
