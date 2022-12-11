@@ -1,6 +1,5 @@
 use crate::day09::Direction::{DOWN, LEFT, RIGHT, UP};
 use crate::puzzle::{Puzzle, PuzzleFn::USIZE};
-use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 
@@ -87,17 +86,12 @@ fn move_point(p: Point, direction: &Direction) -> Point {
 
 fn follow(head: Point, tail: Point) -> Point {
     if (tail.0 - head.0).abs() > 1 || (tail.1 - head.1).abs() > 1 {
-        (tail.0 + cmp(head.0, tail.0), tail.1 + cmp(head.1, tail.1))
+        (
+            tail.0 + (head.0 - tail.0).signum(),
+            tail.1 + (head.1 - tail.1).signum(),
+        )
     } else {
         tail
-    }
-}
-
-fn cmp(a: i32, b: i32) -> i32 {
-    match a.cmp(&b) {
-        Ordering::Less => -1,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
     }
 }
 

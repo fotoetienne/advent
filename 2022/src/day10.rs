@@ -18,12 +18,7 @@ enum Instruction {
 }
 
 fn parse_instruction(line: &str) -> Instruction {
-    let (_, instr) = instruction(line).unwrap();
-    instr
-}
-
-fn instruction(i: &str) -> IResult<&str, Instruction> {
-    alt((noop, addx))(i)
+    alt((noop, addx))(line).unwrap().1
 }
 
 fn noop(i: &str) -> IResult<&str, Instruction> {
