@@ -20,6 +20,7 @@ impl Puzzle {
 
 pub(crate) enum PuzzleFn {
     I32(fn(&str) -> i32),
+    U64(fn(&str) -> u64),
     USIZE(fn(&str) -> usize),
     STR(fn(&str) -> String),
 }
@@ -28,6 +29,7 @@ impl PuzzleFn {
     fn invoke(&self, input: &str) -> String {
         match self {
             PuzzleFn::I32(f) => f(input).to_string(),
+            PuzzleFn::U64(f) => f(input).to_string(),
             PuzzleFn::USIZE(f) => f(input).to_string(),
             PuzzleFn::STR(f) => f(input),
         }
