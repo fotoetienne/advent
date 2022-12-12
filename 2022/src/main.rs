@@ -9,11 +9,12 @@ mod day06;
 mod day07;
 mod day08;
 mod day09;
+mod day10;
 mod puzzle;
 mod util;
-use anyhow::Result;
 
 use crate::puzzle::Puzzle;
+use anyhow::Result;
 
 fn main() -> Result<()> {
     let puzzles: Vec<Puzzle> = vec![
@@ -26,6 +27,7 @@ fn main() -> Result<()> {
         day07::PUZZLE,
         day08::PUZZLE,
         day09::PUZZLE,
+        day10::PUZZLE,
     ];
 
     for puzzle in puzzles {
