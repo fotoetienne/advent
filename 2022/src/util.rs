@@ -64,14 +64,14 @@ async fn fetch_input(day: i32) -> Result<String> {
 }
 
 // Maps an integer onto a rbg rainbow color gradient
-pub(crate) fn color_gradient(x: i32) -> (u8, u8, u8) {
+pub(crate) fn color_gradient(x: i32, lightness: Option<f64>) -> (u8, u8, u8) {
     if x == i32::MAX {
         (255, 255, 255)
     } else if x < 0 {
         (0, 0, 0)
     } else {
         let hue = (x % 360).into();
-        let hsl = Hsl::new(hue, 100.0, 50.0, None);
+        let hsl = Hsl::new(hue, 100.0, lightness.unwrap_or(50.0), None);
         let rgb = Rgb::from(hsl);
         (rgb.red() as u8, rgb.green() as u8, rgb.blue() as u8)
     }
@@ -83,6 +83,6 @@ mod test {
 
     #[test]
     fn color_gradient_test() {
-        assert_eq!(color_gradient(0), (255, 0, 0))
+        assert_eq!(color_gradient(0, None), (255, 0, 0))
     }
 }

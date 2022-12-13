@@ -1,6 +1,7 @@
 use crate::puzzle::{Puzzle, PuzzleFn::I32};
 use crate::util::color_gradient;
-use std::collections::VecDeque;
+use itertools::Itertools;
+use std::collections::{HashSet, VecDeque};
 use yansi::Paint;
 
 pub(crate) const PUZZLE: Puzzle = Puzzle {
@@ -45,7 +46,9 @@ impl<T> Matrix<T> {
     }
 }
 
-fn print_map(map: &Matrix<char>, dist: &Matrix<i32>, shortest_dist: i32) {
+fn print_map(map: &Matrix<char>, dist: &Matrix<i32>, goal: &Point) {
+    let goal_distance = dist.get(&goal).unwrap();
+    let path: HashSet<Point> = HashSet::from_iter(get_path(map, dist, goal));
     for i in 0..map.m {
         for j in 0..map.n {
             let c = map.get(&(i, j)).unwrap();
@@ -53,13 +56,38 @@ fn print_map(map: &Matrix<char>, dist: &Matrix<i32>, shortest_dist: i32) {
             let (r, g, b) = if d == i32::MAX {
                 (100, 100, 100)
             } else {
-                color_gradient(d * (360 / shortest_dist))
+                let lightness = if path.contains(&(i, j)) {
+                    Some(90.0)
+                } else {
+                    None
+                };
+                color_gradient(d * (360 / goal_distance), lightness)
             };
             print!("{} ", Paint::rgb(r, g, b, c));
         }
         println!();
     }
     println!();
+}
+
+fn get_path(map: &Matrix<char>, dist: &Matrix<i32>, goal: &Point) -> Vec<Point> {
+    let mut p = goal.clone();
+    let mut path: Vec<Point> = vec![p];
+    loop {
+        let neighbors = map.neighbors(&p);
+        let sorted_neighbors: Vec<&Point> = neighbors
+            .iter()
+            .map(|p| (dist.get(p), p))
+            .sorted()
+            .map(|v| v.1)
+            .collect();
+        p = *sorted_neighbors[0];
+        path.push(p);
+        if *dist.get(&p).unwrap() == 0 {
+            break;
+        }
+    }
+    path
 }
 
 fn parse_input(input: &str) -> TrailMap {
@@ -102,6 +130,7 @@ fn shortest_path(
 
     dist.set(&start, 0);
     let mut curr_dist = 0;
+    let mut goal = (0, 0);
     let mut q: VecDeque<Point> = VecDeque::from([start]);
     'outer: loop {
         if q.is_empty() {
@@ -121,6 +150,7 @@ fn shortest_path(
                 if path_ok(p_elevation, elevation) {
                     dist.set(&neighbor, curr_dist);
                     if is_goal(*c) {
+                        goal = neighbor;
                         break 'outer;
                     }
                     q.push_back(neighbor);
@@ -128,7 +158,7 @@ fn shortest_path(
             }
         }
     }
-    print_map(&topo, &dist, curr_dist);
+    print_map(&topo, &dist, &goal);
     curr_dist
 }
 
