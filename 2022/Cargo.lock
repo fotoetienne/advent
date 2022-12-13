@@ -7,6 +7,7 @@ name = "advent2022"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "colorsys",
  "futures",
  "itertools",
  "lazy_static",
@@ -14,6 +15,7 @@ dependencies = [
  "regex",
  "reqwest",
  "tokio",
+ "yansi",
 ]
 
 [[package]]
@@ -72,6 +74,12 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "colorsys"
+version = "0.6.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52c2ad453c82bd637e3969dc52f06676610db0b20c607bf0634c7e9d840789e8"
 
 [[package]]
 name = "core-foundation"
@@ -1178,3 +1186,9 @@ checksum = "80d0f4e272c85def139476380b12f9ac60926689dd2e01d4923222f40580869d"
 dependencies = [
  "winapi",
 ]
+
+[[package]]
+name = "yansi"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09041cd90cf85f7f8b2df60c646f853b7f535ce68f85244eb6731cf89fa498ec"

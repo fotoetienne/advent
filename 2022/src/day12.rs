@@ -1,5 +1,7 @@
 use crate::puzzle::{Puzzle, PuzzleFn::I32};
+use crate::util::color_gradient;
 use std::collections::VecDeque;
+use yansi::Paint;
 
 pub(crate) const PUZZLE: Puzzle = Puzzle {
     day: 12,
@@ -43,17 +45,21 @@ impl<T> Matrix<T> {
     }
 }
 
-fn print_map(map: &Matrix<char>, dist: &Matrix<i32>) {
+fn print_map(map: &Matrix<char>, dist: &Matrix<i32>, shortest_dist: i32) {
     for i in 0..map.m {
         for j in 0..map.n {
             let c = map.get(&(i, j)).unwrap();
-            let d = dist.get(&(i, j)).unwrap();
-            let color = d % 256 + 17;
-            print!("\u{1b}[38;5;{}m{} ", color, c);
+            let d: i32 = *dist.get(&(i, j)).unwrap();
+            let (r, g, b) = if d == i32::MAX {
+                (100, 100, 100)
+            } else {
+                color_gradient(d * (360 / shortest_dist))
+            };
+            print!("{} ", Paint::rgb(r, g, b, c));
         }
         println!();
     }
-    println!("\x1b[0m"); // clear color
+    println!();
 }
 
 fn parse_input(input: &str) -> TrailMap {
@@ -122,7 +128,7 @@ fn shortest_path(
             }
         }
     }
-    print_map(&topo, &dist);
+    print_map(&topo, &dist, curr_dist);
     curr_dist
 }
 
