@@ -17,23 +17,10 @@ pub(crate) const PUZZLE: Puzzle = Puzzle {
     part2: I32(part2),
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 enum Value {
     Int(i32),
     List(Vec<Value>),
-}
-
-impl Eq for Value {}
-
-impl PartialEq<Self> for Value {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Int(left), Int(right)) => left == right,
-            (Int(_), List(_)) => List(vec![self.clone()]) == *other,
-            (List(left), List(right)) => left == right,
-            (List(_), Int(_)) => self == &List(vec![other.clone()]),
-        }
-    }
 }
 
 impl PartialOrd<Self> for Value {
