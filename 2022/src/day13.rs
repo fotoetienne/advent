@@ -27,15 +27,11 @@ impl Eq for Value {}
 
 impl PartialEq<Self> for Value {
     fn eq(&self, other: &Self) -> bool {
-        match self {
-            Int(left) => match other {
-                Int(right) => left == right,
-                List(_) => List(vec![self.clone()]) == *other,
-            },
-            List(left_list) => match other {
-                Int(_) => self == &List(vec![other.clone()]),
-                List(right_list) => left_list == right_list,
-            },
+        match (self, other) {
+            (Int(left), Int(right)) => left == right,
+            (Int(_), List(_)) => List(vec![self.clone()]) == *other,
+            (List(left), List(right)) => left == right,
+            (List(_), Int(_)) => self == &List(vec![other.clone()]),
         }
     }
 }
@@ -48,15 +44,11 @@ impl PartialOrd<Self> for Value {
 
 impl Ord for Value {
     fn cmp(&self, other: &Self) -> Ordering {
-        match self {
-            Int(left) => match other {
-                Int(right) => left.cmp(right),
-                List(_) => List(vec![self.clone()]).cmp(other),
-            },
-            List(left_list) => match other {
-                Int(_) => self.cmp(&List(vec![other.clone()])),
-                List(right_list) => left_list.cmp(right_list),
-            },
+        match (self, other) {
+            (Int(left), Int(right)) => left.cmp(right),
+            (Int(_), List(_)) => List(vec![self.clone()]).cmp(other),
+            (List(left), List(right)) => left.cmp(right),
+            (List(_), Int(_)) => self.cmp(&List(vec![other.clone()])),
         }
     }
 }
@@ -129,7 +121,7 @@ mod test {
 
     #[test]
     fn parser_test() {
-        let (i, result) = list("[1,1,3,1,[[]]]").unwrap();
+        let (_, result) = list("[1,1,3,1,[[]]]").unwrap();
         let expected = List(vec![
             Int(1),
             Int(1),
