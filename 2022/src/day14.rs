@@ -125,11 +125,10 @@ fn drop_sand(cave: &mut HashMap<Point, Item>, trace: bool) -> bool {
 fn part2(input: &str) -> i32 {
     let rocks = parse_input(input);
     let mut cave = build_cave(rocks);
-    let (mut xmin, mut xmax, mut ymax) = (i32::MAX, 0, 0);
-    for (x, y) in cave.keys() {
-        (xmin, xmax, ymax) = (min(xmin, *x), max(xmax, *x), max(ymax, *y));
-    }
-    for x in (xmin - ymax)..=(xmax + ymax) {
+
+    // Add a floor that is slightly wider than twice the cave depth
+    let ymax = *cave.keys().map(|(_, y)| y).max().unwrap();
+    for x in (495 - ymax)..(505 + ymax) {
         cave.insert((x, ymax + 2), Rock);
     }
 
