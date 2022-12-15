@@ -1,5 +1,6 @@
 use crate::util::get_input;
 use anyhow::Result;
+use std::time::Instant;
 
 pub(crate) struct Puzzle {
     pub(crate) day: i32,
@@ -10,10 +11,24 @@ pub(crate) struct Puzzle {
 impl Puzzle {
     pub(crate) fn run(&self) -> Result<()> {
         let input = get_input(self.day)?;
+        let start = Instant::now();
         let answer = self.part1.invoke(&input);
-        println!("Day {} part 1: {}", self.day, answer);
+        let duration = start.elapsed();
+        println!(
+            "Day {} part 1 ({} ms): {}",
+            self.day,
+            duration.as_micros() as f64 / 1000.0,
+            answer,
+        );
+        let start2 = Instant::now();
         let answer2 = self.part2.invoke(&input);
-        println!("Day {} part 2: {}", self.day, answer2);
+        let duration2 = start2.elapsed();
+        println!(
+            "Day {} part 2 ({} ms): {}",
+            self.day,
+            duration2.as_micros() as f64 / 1000.0,
+            answer2,
+        );
         Ok(())
     }
 }

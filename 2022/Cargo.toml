@@ -16,3 +16,7 @@ lazy_static = "1.4.0"
 nom = "7.1.1"
 yansi = "0.5.1"
 colorsys = "0.6.6"
+fxhash = "0.2.1"
+
+[profile.release]
+debug = true

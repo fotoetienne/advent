@@ -1,6 +1,8 @@
 use std::cmp::{max, min};
 use std::collections::HashMap;
+use std::hash::{BuildHasher, BuildHasherDefault};
 
+use fxhash::{FxBuildHasher, FxHasher};
 use nom::bytes::complete::tag;
 use nom::character::complete::i32 as nom_i32;
 use nom::multi::separated_list1;
@@ -21,13 +23,14 @@ type Point = (i32, i32);
 fn part1(input: &str) -> i32 {
     let rocks = parse_input(input);
     let mut cave = build_cave(rocks);
+    let ymax = *cave.keys().map(|(_, y)| y).max().unwrap();
 
     let mut sands = 0;
-    while drop_sand(&mut cave, false) {
+    while drop_sand(&mut cave, ymax, false) {
         sands += 1;
     }
 
-    drop_sand(&mut cave, true);
+    drop_sand(&mut cave, ymax, true);
 
     print_cave(&cave);
     sands
@@ -48,8 +51,8 @@ fn rock(i: &str) -> IResult<&str, Vec<Point>> {
     separated_list1(tag(" -> "), separated_pair(nom_i32, tag(","), nom_i32))(i)
 }
 
-fn build_cave(rocks: Vec<Vec<Point>>) -> HashMap<Point, Item> {
-    let mut map = HashMap::new();
+fn build_cave(rocks: Vec<Vec<Point>>) -> HashMap<(i32, i32), Item, BuildHasherDefault<FxHasher>> {
+    let mut map = HashMap::with_capacity_and_hasher(30000, FxBuildHasher::default());
     for rock_path in rocks {
         let mut points = rock_path.iter();
         let mut a = points.next().unwrap();
@@ -71,7 +74,7 @@ fn build_cave(rocks: Vec<Vec<Point>>) -> HashMap<Point, Item> {
     map
 }
 
-fn print_cave(cave: &HashMap<Point, Item>) {
+fn print_cave<H: BuildHasher>(cave: &HashMap<(i32, i32), Item, H>) {
     // dbg!(cave);
     let (mut xmin, mut xmax, mut ymin, mut ymax) = (i32::MAX, 0, i32::MAX, 0);
     for (x, y) in cave.keys() {
@@ -94,9 +97,7 @@ fn print_cave(cave: &HashMap<Point, Item>) {
     println!()
 }
 
-fn drop_sand(cave: &mut HashMap<Point, Item>, trace: bool) -> bool {
-    let ymax = cave.iter().map(|((_, y), _)| y).max().unwrap();
-
+fn drop_sand<H: BuildHasher>(cave: &mut HashMap<Point, Item, H>, ymax: i32, trace: bool) -> bool {
     let (mut x, mut y) = (500, 0);
     let mut path = vec![];
     loop {
@@ -125,15 +126,15 @@ fn drop_sand(cave: &mut HashMap<Point, Item>, trace: bool) -> bool {
 fn part2(input: &str) -> i32 {
     let rocks = parse_input(input);
     let mut cave = build_cave(rocks);
+    let ymax = *cave.keys().map(|(_, y)| y).max().unwrap();
 
     // Add a floor that is slightly wider than twice the cave depth
-    let ymax = *cave.keys().map(|(_, y)| y).max().unwrap();
     for x in (495 - ymax)..(505 + ymax) {
         cave.insert((x, ymax + 2), Rock);
     }
 
     let mut sands = 0;
-    while drop_sand(&mut cave, false) {
+    while drop_sand(&mut cave, ymax, false) {
         sands += 1;
         if cave.get(&(500, 0)).is_some() {
             break;
