@@ -14,6 +14,7 @@ mod day11;
 mod day12;
 mod day13;
 mod day14;
+mod day15;
 mod puzzle;
 mod util;
 
@@ -36,6 +37,7 @@ fn main() -> Result<()> {
         day12::PUZZLE,
         day13::PUZZLE,
         day14::PUZZLE,
+        day15::PUZZLE,
     ];
 
     for puzzle in puzzles {
