@@ -1,10 +1,10 @@
 use crate::puzzle::Puzzle;
 use crate::puzzle::PuzzleFn::{U64, USIZE};
+use fxhash::FxHashSet;
 use nom::bytes::complete::tag;
 use nom::character::complete::i32 as parse_i32;
 use nom::sequence::{pair, preceded};
 use nom::IResult;
-use std::collections::HashSet;
 
 pub(crate) const PUZZLE: Puzzle = Puzzle {
     day: 15,
@@ -14,7 +14,7 @@ pub(crate) const PUZZLE: Puzzle = Puzzle {
 
 fn part1(input: &str, y: i32) -> usize {
     let sensor_data = parse_input(input);
-    let mut row: HashSet<i32> = HashSet::new();
+    let mut row: FxHashSet<i32> = FxHashSet::default();
 
     for (sensor, beacon) in sensor_data {
         let beacon_dist = manhattan_dist(&sensor, &beacon);
@@ -45,7 +45,7 @@ fn part2(input: &str, bound: i32) -> u64 {
         'row: while x <= bound {
             for (sensor, range) in &sensor_ranges {
                 if manhattan_dist(sensor, &(x as i32, y as i32)) <= *range {
-                    // In range of sensor. Skip to the next point on the same row that is our of range
+                    // In range of sensor. Skip to the next point on the same row that is out of range
                     let y_dist = (y - sensor.1).abs();
                     x = sensor.0 + (range - y_dist) + 1;
                     continue 'row;
