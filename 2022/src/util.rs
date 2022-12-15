@@ -1,7 +1,6 @@
 use anyhow::{Error, Result};
 use colorsys::{Hsl, Rgb};
 use std::fs;
-use yansi::Paint;
 
 pub(crate) fn get_input(day: i32) -> Result<String> {
     let rt = tokio::runtime::Runtime::new().unwrap();

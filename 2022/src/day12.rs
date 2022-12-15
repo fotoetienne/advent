@@ -162,6 +162,7 @@ fn shortest_path(
     curr_dist
 }
 
+#[allow(unused_variables)]
 fn part1(input: &str) -> i32 {
     let map = parse_input(input);
     let TrailMap { topo, start, end } = map;
@@ -169,6 +170,7 @@ fn part1(input: &str) -> i32 {
     shortest_path(&topo, start, path_ok, |c| c == 'E')
 }
 
+#[allow(unused_variables)]
 fn part2(input: &str) -> i32 {
     let map = parse_input(input);
     let TrailMap { topo, start, end } = map;

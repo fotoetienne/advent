@@ -15,7 +15,7 @@ pub(crate) const PUZZLE: Puzzle = Puzzle {
 };
 
 struct Monkey {
-    n: u32,
+    _n: u32,
     items: Vec<u64>,
     operation: Operation,
     divisible_by: u64,
@@ -125,7 +125,7 @@ fn monkey(s: &str) -> IResult<&str, Monkey> {
     Ok((
         s,
         Monkey {
-            n,
+            _n: n,
             items,
             operation,
             divisible_by,
@@ -178,7 +178,7 @@ mod test {
     fn parser_test() {
         let monkeys = parse_input(SAMPLE_INPUT);
         assert_eq!(monkeys.len(), 4);
-        assert_eq!(monkeys[0].n, 0);
+        assert_eq!(monkeys[0]._n, 0);
         assert_eq!(monkeys[0].items, vec![79, 98]);
     }
 
