@@ -14,9 +14,11 @@ itertools = "0.10.5"
 regex = "1.7.0"
 lazy_static = "1.4.0"
 nom = "7.1.1"
+nom-regex = "0.2.0"
 yansi = "0.5.1"
 colorsys = "0.6.6"
 fxhash = "0.2.1"
+memoize = "0.3.3"
 
 [profile.release]
 debug = true
